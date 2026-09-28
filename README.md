@@ -51,7 +51,7 @@ A modern, responsive Netflix Clone built with **Vue 3**, **Vite**, **TypeScript*
 បង្កើតឯកសារ `.env` នៅ Root directory នៃគម្រោង (ប្រសិនបើមិនទាន់មាន) ដោយចម្លងតាមគំរូ `.env.example`៖
 
 ```env
-VITE_TMDB_API_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYjlhMTc5YjNlNTk2ZmNjMTJiNGUwYzVhN2NlMjk2MyIsIm5iZiI6MTc4OTk3Mzk5MS40Nywic3ViIjoiNmFiMGQ1ZTc5NWZiNTYwNzA1ZjY2YjFhIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.CZ0d82-_9vt6U2m5fLEhApci7kns0Lojt9E5fZ8c3Yw
+VITE_TMDB_API_TOKEN=your_tmdb_bearer_token_here
 ```
 
 > **ចំណាំ:** អថេរដែលផ្តើមដោយ `VITE_` អាចត្រូវបានហៅប្រើនៅក្នុងកូដ Client-side តាមរយៈ `import.meta.env.VITE_TMDB_API_TOKEN`។
@@ -253,7 +253,7 @@ Netlify នឹងចាប់យកដោយស្វ័យប្រវត្ត
 1. នៅទំព័រ Deploy ឬចូលទៅ **Site configuration** ➔ **Environment variables** ➔ **Add a variable**
 2. បញ្ចូលព័ត៌មានដូចខាងក្រោម៖
    - **Key:** `VITE_TMDB_API_TOKEN`
-   - **Value:** `eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxYjlhMTc5YjNlNTk2ZmNjMTJiNGUwYzVhN2NlMjk2MyIsIm5iZiI6MTc4OTk3Mzk5MS40Nywic3ViIjoiNmFiMGQ1ZTc5NWZiNTYwNzA1ZjY2YjFhIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.CZ0d82-_9vt6U2m5fLEhApci7kns0Lojt9E5fZ8c3Yw`
+   - **Value:** `(បិទភ្ជាប់ TMDB Bearer Token របស់អ្នកនៅទីនេះ / Paste your TMDB Bearer Token here)`
 3. ចុច **Save**។
 
 #### ជំហានទី ៤: ចុច Deploy Site
