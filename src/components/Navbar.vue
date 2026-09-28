@@ -1,456 +1,191 @@
-<script setup>
-import { ref } from 'vue'
-const email = ref('')
-const emailError = ref('')
-const showLoginModal = ref(false)
-const loginIdentifier = ref('')
-const isHelpOpen = ref(false)
-const emit = defineEmits(['open-login'])
-const joinNow = () => {
-  emailError.value = ''
-  if (email.value.trim() === '') {
-    emailError.value = 'Email is required.'
-    return
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const isScrolled = ref(false)
+
+function handleScroll() {
+  isScrolled.value = window.scrollY > 40
+}
+
+function handleAuthClick() {
+  if (authStore.isLoggedIn) {
+    authStore.logout()
+  } else {
+    authStore.openAuthModal()
   }
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailPattern.test(email.value)) {
-    emailError.value = 'Please enter a valid email address.'
-    return
-  }
-  alert(`Welcome! Your email is ${email.value}`)
-  email.value = ''
 }
-const openModal = () => {
-  showLoginModal.value = true
-  emit('open-login')
+
+function goToHome() {
+  router.push('/')
 }
-const closeModal = () => {
-  showLoginModal.value = false
-  loginIdentifier.value = ''
-  isHelpOpen.value = false
-}
-const handleModalSubmit = () => {
-  const value = loginIdentifier.value.trim()
-  if (!value) {
-    return
-  }
-  localStorage.setItem('isLoggedIn', 'true')
-  localStorage.setItem('userEmail', value)
-  alert(`Signed in as: ${value}`)
-  closeModal()
-}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
 <template>
-  <header class="header">
-    <div class="navbar">
-      <div class="logo">NETFLIX</div>
+  <header class="header" :class="{ scrolled: isScrolled }">
+    <div class="nav-container">
+      <div class="nav-left">
+        <h1 class="logo" @click="goToHome">NETFLIX</h1>
+        <nav class="nav-links">
+          <router-link to="/" class="nav-link active">Home</router-link>
+          <router-link to="/movies" class="nav-link">Movies</router-link>
+          <a href="#plans" class="nav-link">Plans</a>
+        </nav>
+      </div>
 
-      <button class="sign-in" @click="openModal">Sign In</button>
-    </div>
-    <div class="photo">
-      <div class="hero-content">
-        <h2>Movies</h2>
-
-        <p class="description">
-          Movies move us like nothing else can, whether they're scary, funny, dramatic, romantic or
-          anywhere in-between. So many titles, much to experience.
-        </p>
-        <div class="input-area">
-          <div class="email-box">
-            <input
-              v-model="email"
-              type="email"
-              placeholder="Email address"
-              :class="{ 'input-error': emailError }"
-              @input="emailError = ''"
-            />
-            <p v-if="emailError" class="error-message">
-              <span class="error-icon">!</span>
-              {{ emailError }}
-            </p>
-          </div>
-          <button @click="joinNow">Join Now</button>
-        </div>
-        <p class="price">Endless entertainment starting at USD 2.99</p>
+      <div class="nav-right">
+        <template v-if="authStore.isLoggedIn">
+          <span class="user-greeting">{{ authStore.currentUser?.email }}</span>
+          <button class="auth-btn logout-btn" @click="handleAuthClick">Sign Out</button>
+        </template>
+        <template v-else>
+          <button class="auth-btn sign-in-btn" @click="handleAuthClick">Sign In</button>
+        </template>
       </div>
     </div>
   </header>
-  <Transition name="fade">
-    <div v-if="showLoginModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-card">
-        <button class="close-btn" @click="closeModal">&times;</button>
-
-        <div class="modal-logo">NETFLIX</div>
-
-        <h1 class="modal-title">Enter your info to sign in</h1>
-
-        <p class="modal-subtitle">Or get started with a new account.</p>
-
-        <form class="modal-form" @submit.prevent="handleModalSubmit">
-          <input
-            v-model="loginIdentifier"
-            type="text"
-            placeholder="Email or mobile number"
-            class="modal-input"
-            required
-          />
-
-          <button type="submit" class="modal-submit-btn">Continue</button>
-        </form>
-
-        <div class="get-help">
-          <button class="help-btn" @click="isHelpOpen = !isHelpOpen">
-            Get Help
-            <span class="chevron" :class="{ 'chevron-up': isHelpOpen }"> ❯ </span>
-          </button>
-
-          <div v-if="isHelpOpen" class="help-dropdown">
-            <a href="#"> Forgot email or password? </a>
-          </div>
-        </div>
-
-        <p class="recaptcha-text">
-          This page is protected by Google reCAPTCHA to ensure you're not a bot.
-        </p>
-      </div>
-    </div>
-  </Transition>
 </template>
+
 <style scoped>
 .header {
-  width: 100%;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
+  padding: 18px 48px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  transition: background-color 0.3s ease, padding 0.3s ease;
 }
 
-.navbar {
-  width: 100%;
+.header.scrolled {
+  background-color: #141414;
+  padding: 12px 48px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.nav-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 50px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 36px;
 }
 
 .logo {
-  color: orangered;
-  font-size: 50px;
-  font-weight: bold;
-  padding: 20px 0;
-}
-
-.sign-in {
-  background-color: whitesmoke;
-  color: black;
-  border: none;
-  border-radius: 15px;
-  padding: 8px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-right: 30px;
-}
-
-.sign-in:hover {
-  color: blue;
-}
-
-.photo {
-  min-height: calc(100vh - 150px);
-  margin: 0 40px;
-  background-image:
-    linear-gradient(to top, black, transparent),
-    url('https://assets.nflxext.com/ffe/siteui/vlv3/371f6a2f-67f2-415e-9629-d8a97f270bee/web_tall_panel/KH-en-20260901-TRIFECTA-perspective_4e770b21-9ae9-4ea1-911d-1dec9173dd36_large.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: 20px;
-  border: 1px solid gray;
-  display: flex;
-  align-items: flex-end;
-  padding: 45px;
-}
-
-.hero-content {
-  color: white;
-  max-width: 900px;
-}
-
-.hero-content h2 {
-  font-size: 50px;
-  margin-bottom: 10px;
-}
-
-.description {
-  font-size: 20px;
-  line-height: 1.5;
-}
-
-.input-area {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  margin-top: 25px;
-}
-
-.email-box {
-  width: 250px;
-}
-
-.input-area input {
-  width: 250px;
-  height: 40px;
-  padding: 0 15px;
-  font-size: 14px;
-  border-radius: 20px;
-  border: 1px solid orangered;
-  background-color: black;
-  color: white;
-  outline: none;
-}
-
-.input-area input:focus {
-  border-color: white;
-}
-
-.input-area input.input-error {
-  border: 2px solid orangered;
-}
-
-.input-area button {
-  width: 150px;
-  height: 40px;
-  background: orangered;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.input-area button:hover {
-  opacity: 0.9;
-}
-
-.error-message {
-  color: orangered;
-  font-size: 13px;
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.error-icon {
-  width: 16px;
-  height: 16px;
-  border: 1px solid orangered;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: bold;
-}
-
-.price {
-  margin-top: 12px;
-  font-size: 17px;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.modal-card {
-  position: relative;
-  width: 100%;
-  max-width: 440px;
-  background-color: black;
-  border-radius: 12px;
-  padding: 40px 36px;
-  box-shadow: 0 20px 40px black;
-}
-
-.close-btn {
-  position: absolute;
-  top: 16px;
-  right: 20px;
-  background: none;
-  border: none;
-  color: gray;
+  color: #e50914;
   font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 2px;
   cursor: pointer;
+  user-select: none;
+  margin: 0;
 }
 
-.close-btn:hover {
-  color: white;
-}
-
-.modal-logo {
-  color: orangered;
-  font-size: 28px;
-  font-weight: bold;
-  letter-spacing: 1px;
-  margin-bottom: 24px;
-}
-
-.modal-title {
-  font-size: 26px;
-  color: white;
-  margin-bottom: 6px;
-}
-
-.modal-subtitle {
-  font-size: 14px;
-  color: gray;
-  margin-bottom: 24px;
-}
-
-.modal-form {
+.nav-links {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-link {
+  color: #e5e5e5;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #fff;
+  font-weight: 700;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
   gap: 16px;
 }
 
-.modal-input {
-  width: 100%;
-  height: 54px;
-  background-color: black;
-  border: 1px solid #333;
-  border-radius: 4px;
-  padding: 0 16px;
-  color: white;
-  font-size: 15px;
-  outline: none;
-}
-
-.modal-input:focus {
-  border-color: white;
-}
-
-.modal-input::placeholder {
-  color: gray;
-}
-
-.modal-submit-btn {
-  width: 100%;
-  height: 48px;
-  background-color: orangered;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.get-help {
-  margin-top: 20px;
-}
-
-.help-btn {
-  background: none;
-  border: none;
-  color: white;
+.user-greeting {
+  color: #e5e5e5;
   font-size: 14px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.chevron {
-  font-size: 11px;
-  transform: rotate(90deg);
-  display: inline-block;
-  transition: transform 0.2s ease;
+.auth-btn:active {
+  transform: scale(0.98);
 }
 
-.chevron-up {
-  transform: rotate(-90deg);
+.sign-in-btn {
+  background-color: #e50914;
+  color: #fff;
 }
 
-.help-dropdown {
-  margin-top: 10px;
+.sign-in-btn:hover {
+  background-color: #c11119;
 }
 
-.help-dropdown a {
-  color: mediumblue;
-  font-size: 13px;
-  text-decoration: none;
+.logout-btn {
+  background-color: #333;
+  color: #fff;
 }
 
-.help-dropdown a:hover {
-  text-decoration: underline;
-}
-
-.recaptcha-text {
-  margin-top: 28px;
-  font-size: 12px;
-  color: gray;
-  line-height: 1.4;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.logout-btn:hover {
+  background-color: #444;
 }
 
 @media (max-width: 768px) {
-  .navbar {
-    padding: 0 20px;
+  .header {
+    padding: 14px 20px;
+  }
+
+  .header.scrolled {
+    padding: 10px 20px;
+  }
+
+  .nav-links {
+    display: none;
   }
 
   .logo {
-    font-size: 35px;
+    font-size: 22px;
   }
 
-  .sign-in {
-    margin-right: 0;
-  }
-
-  .photo {
-    margin: 0 15px;
-    padding: 25px;
-  }
-
-  .hero-content h2 {
-    font-size: 35px;
-  }
-
-  .description {
-    font-size: 16px;
-  }
-
-  .input-area {
-    flex-direction: column;
-  }
-
-  .email-box {
-    width: 100%;
-  }
-
-  .input-area input {
-    width: 100%;
-  }
-
-  .input-area button {
-    width: 130px;
+  .user-greeting {
+    display: none;
   }
 }
 </style>

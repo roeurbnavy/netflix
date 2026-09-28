@@ -1,179 +1,223 @@
-<script>
-export default {
-  data() {
-    return {
-      email: '',
-      emailError: false,
-    }
-  },
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
-  methods: {
-    joinNow() {
-      if (this.email.trim() === '') {
-        this.emailError = true
-        return
-      }
+const authStore = useAuthStore()
 
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const email = ref('')
+const emailError = ref('')
 
-      if (!emailPattern.test(this.email)) {
-        this.emailError = true
-        return
-      }
+function handleGetStarted() {
+  emailError.value = ''
+  const trimmed = email.value.trim()
 
-      this.emailError = false
+  if (!trimmed) {
+    emailError.value = 'Email is required to get started.'
+    return
+  }
 
-      alert('Welcome! Registration can continue.')
-    },
-  },
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailPattern.test(trimmed)) {
+    emailError.value = 'Please enter a valid email address.'
+    return
+  }
+
+  authStore.login(trimmed)
+  email.value = ''
 }
 </script>
 
 <template>
-  <section class="hero">
+  <section class="hero-section">
+    <div class="hero-backdrop"></div>
     <div class="hero-content">
-      <h2>Movies</h2>
-
-      <p>
-        Movies move us like nothing else can, whether they're scary, funny,
-        <br />
-        dramatic, romantic or anywhere in-between. So many titles, so much to experience.
+      <h1 class="hero-title">Unlimited movies, TV shows, and more</h1>
+      <p class="hero-subtitle">
+        Movies move us like nothing else can, whether they're scary, funny, dramatic, romantic or
+        anywhere in-between.
       </p>
+      <p class="hero-desc">Ready to watch? Enter your email to create or restart your membership.</p>
 
-      <div class="input-area">
-        <div>
+      <form class="hero-cta-form" @submit.prevent="handleGetStarted">
+        <div class="input-wrapper">
           <input
             v-model="email"
             type="email"
             placeholder="Email address"
-            :class="{ 'input-error': emailError }"
+            :class="{ 'has-error': emailError }"
           />
-
-          <p v-if="emailError" class="error-message">
-            <span class="error-icon"></span>
-            Email is required.
-          </p>
+          <span v-if="emailError" class="error-text">{{ emailError }}</span>
         </div>
+        <button type="submit" class="cta-button">
+          Get Started
+          <svg class="chevron-icon" viewBox="0 0 24 24" width="24" height="24">
+            <path
+              fill="currentColor"
+              d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
+            />
+          </svg>
+        </button>
+      </form>
 
-        <button @click="joinNow">Join Now</button>
-      </div>
-
-      <p class="price">Endless entertainment starting at USD 2.99</p>
+      <p class="hero-pricing">Endless entertainment starting at USD 2.99 / month.</p>
     </div>
   </section>
 </template>
 
 <style scoped>
-.hero {
-  min-height: calc(100vh - 106px);
-  margin: 0 40px;
+.hero-section {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 60px;
   background-image:
-    linear-gradient(to top, black, transparent),
+    linear-gradient(to top, #141414 0%, rgba(20, 20, 20, 0.4) 60%, rgba(20, 20, 20, 0.8) 100%),
     url('https://assets.nflxext.com/ffe/siteui/vlv3/371f6a2f-67f2-415e-9629-d8a97f270bee/web_tall_panel/KH-en-20260901-TRIFECTA-perspective_4e770b21-9ae9-4ea1-911d-1dec9173dd36_large.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border-radius: 20px;
-  border: 1px solid gray;
-  display: flex;
-  align-items: flex-end;
-  padding: 45px;
+  color: #fff;
+  border-bottom: 8px solid #222;
 }
 
 .hero-content {
-  color: white;
+  position: relative;
+  z-index: 10;
+  max-width: 800px;
 }
 
-.hero h2 {
-  font-size: 40px;
+.hero-title {
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  font-weight: 400;
   margin-bottom: 20px;
-  font-family: Arial, Helvetica, sans-serif;
+  color: #e5e5e5;
+  line-height: 1.5;
 }
 
-.hero-content > p {
-  font-size: 20px;
-  line-height: 1.4;
-  font-family: Arial, Helvetica, sans-serif;
+.hero-desc {
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+  color: #fff;
 }
 
-.input-area {
+.hero-cta-form {
   display: flex;
+  align-items: flex-start;
+  justify-content: center;
   gap: 10px;
-  margin-top: 35px;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.input-area input {
-  width: 350px;
-  height: 50px;
-  padding: 18px;
-  font-size: 14px;
-  border: 1px solid white;
-  border-radius: 20px;
-  outline: none;
-  background: black;
-  color: white;
+.input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
 }
 
-.input-area input.error {
-  border: 2px solid red;
-  background: black;
-  color: white;
-}
-
-.input-area button {
-  width: 200px;
-  height: 50px;
-  background: #e50914;
-  color: white;
-  border: none;
-  border-radius: 20px;
+.input-wrapper input {
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
   font-size: 16px;
-  font-weight: bold;
+  background: rgba(15, 15, 15, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  color: #fff;
+  outline: none;
+  backdrop-filter: blur(4px);
+  transition: border-color 0.2s;
+}
+
+.input-wrapper input:focus {
+  border-color: #fff;
+}
+
+.input-wrapper input.has-error {
+  border-color: #e50914;
+}
+
+.error-text {
+  color: #e50914;
+  font-size: 13px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  padding: 0 24px;
+  background: #e50914;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s, transform 0.1s;
 }
 
-.input-area button:hover {
-  background: #b20710;
+.cta-button:hover {
+  background: #c11119;
 }
 
-.price {
-  margin-top: 5px;
+.cta-button:active {
+  transform: scale(0.98);
 }
 
-@media (max-width: 600px) {
-  .hero {
-    margin: 0 15px;
-    padding: 25px;
+.chevron-icon {
+  margin-left: 6px;
+}
+
+.hero-pricing {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 70vh;
+    padding: 100px 16px 40px;
   }
 
-  .hero h2 {
-    font-size: 42px;
+  .hero-title {
+    font-size: 2.1rem;
   }
 
-  .hero-content > p {
-    font-size: 16px;
+  .hero-subtitle {
+    font-size: 1.05rem;
   }
 
-  .hero-content br {
-    display: none;
-  }
-
-  .input-area {
+  .hero-cta-form {
     flex-direction: column;
     width: 100%;
   }
 
-  .input-area input,
-  .input-area button {
+  .input-wrapper {
     width: 100%;
   }
-}
-.error-message {
-  color: #e50914;
-  font-size: 15px;
-  padding: 20px;
-}
-.error-icon {
-  margin-right: 10px;
+
+  .cta-button {
+    width: 100%;
+    margin-top: 8px;
+  }
 }
 </style>

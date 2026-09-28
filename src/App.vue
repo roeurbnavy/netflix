@@ -1,10 +1,11 @@
-<script setup>
-import Movies from './views/Movies.vue'
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <Movies />
+  <RouterView />
 </template>
+
 <style>
 * {
   margin: 0;
@@ -17,10 +18,9 @@ body,
 #app {
   width: 100%;
   min-height: 100%;
-}
-
-body {
-  background: black;
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #141414;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 </style>
