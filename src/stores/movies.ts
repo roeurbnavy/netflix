@@ -1,222 +1,190 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import {
+  tmdbService,
+  type TMDBMovie,
+  type TMDBMovieDetail,
+  type MovieVideo,
+  TMDB_IMAGE_W500,
+  TMDB_IMAGE_ORIGINAL,
+} from '@/services/tmdb'
 
-export interface Movie {
-  id: number
-  title: string
-  image: string
-  link: string
-}
+export type Movie = TMDBMovie
 
 export const useMovieStore = defineStore('movies', () => {
-  const nextWatch = ref<Movie[]>([
-    {
-      id: 1,
-      title: 'Moana',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjzTWmQCpLbaP30BYeDrLN7OLax6Bu-7ppW5x89sZNsw&s=10',
-      link: 'https://www.netflix.com/kh/title/82914439',
-    },
-    {
-      id: 2,
-      title: 'Semua Akan Baik Baik Saja',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8mXvZF5v5YtqEpW9CNAxCZjdCPmBhaIYNxe2EUBfo4A&s=10',
-      link: 'https://www.netflix.com/kh/title/82666022',
-    },
-    {
-      id: 3,
-      title: 'Swapped',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0wZQzWaPnXh_DNaSpuGD7KbTVCIjSt9_vtn8yAL4cjw&s=10',
-      link: 'https://www.netflix.com/kh/title/81749852',
-    },
-    {
-      id: 4,
-      title: 'Despicable Me 4',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRq0F2tnOZ9kMLldSzHpCX9MvoCHn9z3UpvlMac_YUUVw&s=10',
-      link: 'https://www.netflix.com/kh/title/81776693',
-    },
-    {
-      id: 5,
-      title: 'The Thorn: One Sacred Light',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSa14Kg2duNu_8tLS0pxqHIhZM6xsSJbPBNaX3NZpmwiA&s=10',
-      link: 'https://www.netflix.com/kh/title/82769787',
-    },
-    {
-      id: 6,
-      title: 'Troy',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6reIVBYHcsxpA7pCnZq_o2zkRw6WgC-kyPLq1ii6_ig&s=10',
-      link: 'https://www.netflix.com/kh/title/60034571',
-    },
-    {
-      id: 7,
-      title: 'Thrash',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZXLE9zmWXHJifwJ8wQBddNY2eZDEuHi3APWcB55YgtA&s=10',
-      link: 'https://www.netflix.com/kh/title/82650122',
-    },
-    {
-      id: 8,
-      title: 'Spider-Man: Homecoming',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcReFn5DBQ_y_TTMuojKTu-BRbCuvYm9XdjTxOpGgR3Obw&s=10',
-      link: 'https://www.netflix.com/kh/title/80166369',
-    },
-  ])
+  const featuredMovie = ref<TMDBMovie | null>(null)
+  const trending = ref<TMDBMovie[]>([])
+  const popular = ref<TMDBMovie[]>([])
+  const topRated = ref<TMDBMovie[]>([])
+  const nowPlaying = ref<TMDBMovie[]>([])
+  const upcoming = ref<TMDBMovie[]>([])
 
-  const popular = ref<Movie[]>([
-    {
-      id: 9,
-      title: 'Barbie in The Nutcracker',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxJF7-5xEW84_snu7mm0HTOt4IbBE8KJnUHfffjrYG17u9sZDzAXV1HADw&s=10',
-      link: 'https://www.netflix.com/kh/title/60020996',
-    },
-    {
-      id: 10,
-      title: 'Rampage',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGeAIA3Y1WL9gyiaCWmjwnLwDHJlM0Y_KGddW4TCrXtw&s=10',
-      link: 'https://www.netflix.com/kh/title/80216309',
-    },
-    {
-      id: 11,
-      title: 'The Wild Robot',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbsqD2R24L3w8onGCobiZ4Zb2uG-9KyIMS9Aa3ey6V9w&s=10',
-      link: 'https://www.netflix.com/kh/title/81915938',
-    },
-    {
-      id: 12,
-      title: 'Alpha',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDQlGUqLrK2thsEFKMYC0JWfdlbtEhQRv8jQwsOVAKHA&s',
-      link: 'https://www.netflix.com/kh/title/82023350',
-    },
-    {
-      id: 13,
-      title: 'Demon Slayer: Kimetsu no Yaiba Infinity Castle I',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREizT78LAAb3XMSfopzFs7yZyHT8sE02yYtswmmiJxaA&s=10',
-      link: 'https://www.netflix.com/kh/title/82723106',
-    },
-    {
-      id: 14,
-      title: 'Tarung: Unforgiven',
-      image:
-        'https://occ-0-2794-2219.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABescRT72Dg0ROTJ8HK2_Ylve1v5oRYfLsv3nMvbdWC90xsZWttoGWTb3_8Toid5aRw-zT-2mnzsxoV0tPgZZ2MCIDaTDsK7vUhol.jpg?r=c49',
-      link: 'https://www.netflix.com/kh/title/83054979',
-    },
-    {
-      id: 15,
-      title: 'Vishwanath & Sons',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQNdViK0BJyT0Wh89qY1ujzxzMcHmbpyuVHHbCA33GHrQ&s=10',
-      link: 'https://www.netflix.com/kh/title/82034837',
-    },
-    {
-      id: 16,
-      title: 'Peaky Blinders',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3EAplfuj_eXS0RajACqkI9ztB4fm3QxSOSM0BbSVI_A&s=10',
-      link: 'https://www.netflix.com/kh/title/81319485',
-    },
-    {
-      id: 17,
-      title: 'Anora',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRf52VyXF8nxqBsinrS6yIBJTpq5TNSgUEw2mXzsw9fYQ&s',
-      link: 'https://www.netflix.com/kh/title/81952362',
-    },
-    {
-      id: 18,
-      title: 'Karate Kid: Legends',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREE5XvF_1wphn1yWX25c8oqhc3gIxYPrAzFPSuV-TEsg&s=10',
-      link: 'https://www.netflix.com/kh/title/82064961',
-    },
-  ])
+  const searchQuery = ref('')
+  const searchResults = ref<TMDBMovie[]>([])
+  const isSearching = ref(false)
 
-  const trending = ref<Movie[]>([
-    {
-      id: 19,
-      title: 'The Last House',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSytB315BWu4iZ78GDeLezAXdUk1Nh4jz_Hq7EqxedG6w&s=10',
-      link: 'https://www.netflix.com/kh/title/81914143',
-    },
-    {
-      id: 20,
-      title: 'Love Untangled',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwwhEo6idRaN4uN7gxm72eJesGa1IMpaAbh5qcqkBllg&s=10',
-      link: 'https://www.netflix.com/kh/title/81785333',
-    },
-    {
-      id: 21,
-      title: 'Alas Roban',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ40KIyaqo-Q1gB6dk1zf_4YuU3NzY3T4KP8_WqS1809w&s=10',
-      link: 'https://www.netflix.com/kh/title/82136278',
-    },
-    {
-      id: 22,
-      title: 'Gladiator II',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_nGDQ76XJdqhFPomjOMCaPQ6nvpm11JLMrc2KzZELXQ&s=10',
-      link: 'https://www.netflix.com/kh/title/81902148',
-    },
-    {
-      id: 23,
-      title: 'The Rip',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSn9iJXZWr-TVBtu9ry2tJHTacZ9eg5yN6HtEnWU5U4SQ&s',
-      link: 'https://www.netflix.com/kh/title/81915745',
-    },
-    {
-      id: 24,
-      title: 'Mortal Kombat',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjZED0ZL27V_v8rLKamwKfPzUAA0BH8suXmkrkVKCJ8g&s=10',
-      link: 'https://www.netflix.com/kh/title/81267307',
-    },
-    {
-      id: 25,
-      title: 'The Debt Collector',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStXQhCz40FDky9h-mkXtrgaPGpGYURCda6yJGBQhbyDg&s=10',
-      link: 'https://www.netflix.com/kh/title/81786017',
-    },
-    {
-      id: 26,
-      title: 'Facing El Chapo',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSve0F4jo2zO5JT7gI0Fegcf6HC9cpLaGuhZWMrWD5gaA&s',
-      link: 'https://www.netflix.com/kh/title/82048151',
-    },
-    {
-      id: 27,
-      title: 'Warcraft',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpRo1hmNwrUlG16j9zf8LryOmuAqWctKmkCmCq1GyGbg&s',
-      link: 'https://www.netflix.com/kh/title/80093133',
-    },
-    {
-      id: 28,
-      title: 'Wicked',
-      image:
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSU9kkoOAB0n1h4F0sYTobBkzAsmTEs-D_42lxFnOI8jw&s=10',
-      link: 'https://www.netflix.com/kh/title/82022339',
-    },
-  ])
+  const selectedMovie = ref<TMDBMovieDetail | TMDBMovie | null>(null)
+  const isDetailOpen = ref(false)
+
+  const activeTrailerKey = ref<string | null>(null)
+  const isTrailerOpen = ref(false)
+  const isLoadingTrailer = ref(false)
+
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  function getPosterUrl(path: string | null): string {
+    if (!path) {
+      return 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=80'
+    }
+    return `${TMDB_IMAGE_W500}${path}`
+  }
+
+  function getBackdropUrl(path: string | null): string {
+    if (!path) {
+      return 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&auto=format&fit=crop&q=80'
+    }
+    return `${TMDB_IMAGE_ORIGINAL}${path}`
+  }
+
+  async function fetchAllCategories() {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const [trendingRes, popularRes, topRatedRes, nowPlayingRes, upcomingRes] = await Promise.all([
+        tmdbService.getTrending(),
+        tmdbService.getPopular(),
+        tmdbService.getTopRated(),
+        tmdbService.getNowPlaying(),
+        tmdbService.getUpcoming(),
+      ])
+
+      trending.value = trendingRes.results.filter((m) => m.backdrop_path && m.poster_path)
+      popular.value = popularRes.results.filter((m) => m.backdrop_path && m.poster_path)
+      topRated.value = topRatedRes.results.filter((m) => m.backdrop_path && m.poster_path)
+      nowPlaying.value = nowPlayingRes.results.filter((m) => m.backdrop_path && m.poster_path)
+      upcoming.value = upcomingRes.results.filter((m) => m.backdrop_path && m.poster_path)
+
+      // Pick an epic movie with high backdrop quality for Hero banner
+      if (trending.value.length > 0) {
+        const topCandidates = trending.value.slice(0, 5)
+        const randomFeatured = topCandidates[Math.floor(Math.random() * topCandidates.length)]
+        featuredMovie.value = randomFeatured ?? trending.value[0] ?? null
+      }
+    } catch (err: unknown) {
+      console.error('Failed to fetch TMDB data:', err)
+      error.value = err instanceof Error ? err.message : 'Failed to fetch movies from TMDB'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function search(query: string) {
+    searchQuery.value = query
+    const trimmed = query.trim()
+
+    if (!trimmed) {
+      searchResults.value = []
+      isSearching.value = false
+      return
+    }
+
+    isSearching.value = true
+    try {
+      const res = await tmdbService.searchMovies(trimmed)
+      searchResults.value = res.results.filter((m) => m.poster_path)
+    } catch (err) {
+      console.error('Search failed:', err)
+      searchResults.value = []
+    } finally {
+      isSearching.value = false
+    }
+  }
+
+  function clearSearch() {
+    searchQuery.value = ''
+    searchResults.value = []
+    isSearching.value = false
+  }
+
+  async function openMovieDetail(movie: TMDBMovie) {
+    selectedMovie.value = movie
+    isDetailOpen.value = true
+
+    try {
+      const fullDetail = await tmdbService.getMovieDetails(movie.id)
+      if (selectedMovie.value && selectedMovie.value.id === movie.id) {
+        selectedMovie.value = fullDetail
+      }
+    } catch (err) {
+      console.error('Could not load extra movie details:', err)
+    }
+  }
+
+  function closeMovieDetail() {
+    isDetailOpen.value = false
+    selectedMovie.value = null
+  }
+
+  async function playTrailer(movieId: number) {
+    isLoadingTrailer.value = true
+    try {
+      const videos = await tmdbService.getMovieVideos(movieId)
+      const officialTrailer = videos.find(
+        (v: MovieVideo) => v.site === 'YouTube' && v.type === 'Trailer' && v.official,
+      )
+      const anyTrailer = videos.find(
+        (v: MovieVideo) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser'),
+      )
+      const fallbackVideo = videos.find((v: MovieVideo) => v.site === 'YouTube')
+
+      const selected = officialTrailer || anyTrailer || fallbackVideo
+
+      if (selected) {
+        activeTrailerKey.value = selected.key
+        isTrailerOpen.value = true
+      } else {
+        alert('Sorry, no official YouTube trailer available for this title.')
+      }
+    } catch (err) {
+      console.error('Failed to load movie trailer:', err)
+      alert('Could not load trailer at this moment.')
+    } finally {
+      isLoadingTrailer.value = false
+    }
+  }
+
+  function closeTrailer() {
+    isTrailerOpen.value = false
+    activeTrailerKey.value = null
+  }
 
   return {
-    nextWatch,
-    popular,
+    featuredMovie,
     trending,
+    popular,
+    topRated,
+    nowPlaying,
+    upcoming,
+    searchQuery,
+    searchResults,
+    isSearching,
+    selectedMovie,
+    isDetailOpen,
+    activeTrailerKey,
+    isTrailerOpen,
+    isLoadingTrailer,
+    isLoading,
+    error,
+    getPosterUrl,
+    getBackdropUrl,
+    fetchAllCategories,
+    search,
+    clearSearch,
+    openMovieDetail,
+    closeMovieDetail,
+    playTrailer,
+    closeTrailer,
   }
 })

@@ -1,65 +1,71 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useMovieStore } from '@/stores/movies'
 import { useAuthStore } from '@/stores/auth'
 
+const movieStore = useMovieStore()
 const authStore = useAuthStore()
 
-const email = ref('')
-const emailError = ref('')
+const movie = computed(() => movieStore.featuredMovie)
 
-function handleGetStarted() {
-  emailError.value = ''
-  const trimmed = email.value.trim()
-
-  if (!trimmed) {
-    emailError.value = 'Email is required to get started.'
-    return
+const backdropStyle = computed(() => {
+  if (movie.value?.backdrop_path) {
+    return {
+      backgroundImage: `linear-gradient(to top, #141414 0%, rgba(20, 20, 20, 0.4) 60%, rgba(20, 20, 20, 0.8) 100%), url(${movieStore.getBackdropUrl(movie.value.backdrop_path)})`,
+    }
   }
-
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailPattern.test(trimmed)) {
-    emailError.value = 'Please enter a valid email address.'
-    return
+  return {
+    backgroundImage: `linear-gradient(to top, #141414 0%, rgba(20, 20, 20, 0.4) 60%, rgba(20, 20, 20, 0.8) 100%), url('https://assets.nflxext.com/ffe/siteui/vlv3/371f6a2f-67f2-415e-9629-d8a97f270bee/web_tall_panel/KH-en-20260901-TRIFECTA-perspective_4e770b21-9ae9-4ea1-911d-1dec9173dd36_large.jpg')`,
   }
+})
 
-  authStore.login(trimmed)
-  email.value = ''
+const truncatedOverview = computed(() => {
+  if (!movie.value?.overview) return ''
+  return movie.value.overview.length > 200
+    ? movie.value.overview.slice(0, 200) + '...'
+    : movie.value.overview
+})
+
+function handlePlay() {
+  if (movie.value?.id) {
+    movieStore.playTrailer(movie.value.id)
+  }
+}
+
+function handleMoreInfo() {
+  if (movie.value) {
+    movieStore.openMovieDetail(movie.value)
+  }
 }
 </script>
 
 <template>
-  <section class="hero-section">
-    <div class="hero-backdrop"></div>
+  <section class="hero-section" :style="backdropStyle">
     <div class="hero-content">
-      <h1 class="hero-title">Unlimited movies, TV shows, and more</h1>
-      <p class="hero-subtitle">
-        Movies move us like nothing else can, whether they're scary, funny, dramatic, romantic or
-        anywhere in-between.
-      </p>
-      <p class="hero-desc">Ready to watch? Enter your email to create or restart your membership.</p>
+      <div v-if="movie" class="featured-content">
+        <span class="badge-exclusive">&#9733; FEATURED SPOTLIGHT</span>
+        <h1 class="hero-title">{{ movie.title || movie.name }}</h1>
+        <p class="hero-overview">{{ truncatedOverview }}</p>
 
-      <form class="hero-cta-form" @submit.prevent="handleGetStarted">
-        <div class="input-wrapper">
-          <input
-            v-model="email"
-            type="email"
-            placeholder="Email address"
-            :class="{ 'has-error': emailError }"
-          />
-          <span v-if="emailError" class="error-text">{{ emailError }}</span>
+        <div class="hero-buttons">
+          <button class="btn btn-play" @click="handlePlay">
+            <span class="icon">&#9658;</span>
+            Play Trailer
+          </button>
+          <button class="btn btn-info" @click="handleMoreInfo">
+            <span class="icon">&#9432;</span>
+            More Info
+          </button>
         </div>
-        <button type="submit" class="cta-button">
-          Get Started
-          <svg class="chevron-icon" viewBox="0 0 24 24" width="24" height="24">
-            <path
-              fill="currentColor"
-              d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
-            />
-          </svg>
-        </button>
-      </form>
+      </div>
 
-      <p class="hero-pricing">Endless entertainment starting at USD 2.99 / month.</p>
+      <div v-else class="hero-fallback">
+        <h1 class="hero-title">Unlimited movies, TV shows, and more</h1>
+        <p class="hero-subtitle">Watch anywhere. Cancel anytime.</p>
+        <button class="btn btn-play" @click="authStore.openAuthModal()">
+          Get Started
+        </button>
+      </div>
     </div>
   </section>
 </template>
@@ -69,155 +75,110 @@ function handleGetStarted() {
   position: relative;
   min-height: 85vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 120px 24px 60px;
-  background-image:
-    linear-gradient(to top, #141414 0%, rgba(20, 20, 20, 0.4) 60%, rgba(20, 20, 20, 0.8) 100%),
-    url('https://assets.nflxext.com/ffe/siteui/vlv3/371f6a2f-67f2-415e-9629-d8a97f270bee/web_tall_panel/KH-en-20260901-TRIFECTA-perspective_4e770b21-9ae9-4ea1-911d-1dec9173dd36_large.jpg');
+  align-items: flex-end;
+  padding: 140px 48px 120px;
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   background-repeat: no-repeat;
   color: #fff;
-  border-bottom: 8px solid #222;
+  transition: background-image 0.5s ease-in-out;
 }
 
 .hero-content {
   position: relative;
   z-index: 10;
-  max-width: 800px;
+  max-width: 650px;
+}
+
+.badge-exclusive {
+  display: inline-block;
+  background-color: rgba(229, 9, 20, 0.9);
+  color: #fff;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
 }
 
 .hero-title {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 900;
-  line-height: 1.15;
+  line-height: 1.1;
   margin-bottom: 16px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.9);
+}
+
+.hero-overview {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #e5e5e5;
+  margin-bottom: 24px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.hero-buttons {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-play {
+  background-color: #fff;
+  color: #000;
+}
+
+.btn-play:hover {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+.btn-info {
+  background-color: rgba(109, 109, 110, 0.7);
+  color: #fff;
+}
+
+.btn-info:hover {
+  background-color: rgba(109, 109, 110, 0.4);
+}
+
+.icon {
+  font-size: 18px;
 }
 
 .hero-subtitle {
-  font-size: 1.25rem;
-  font-weight: 400;
+  font-size: 1.3rem;
   margin-bottom: 20px;
-  color: #e5e5e5;
-  line-height: 1.5;
-}
-
-.hero-desc {
-  font-size: 1.1rem;
-  margin-bottom: 24px;
-  color: #fff;
-}
-
-.hero-cta-form {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 10px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.input-wrapper {
-  flex: 1;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.input-wrapper input {
-  width: 100%;
-  height: 56px;
-  padding: 0 16px;
-  font-size: 16px;
-  background: rgba(15, 15, 15, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 4px;
-  color: #fff;
-  outline: none;
-  backdrop-filter: blur(4px);
-  transition: border-color 0.2s;
-}
-
-.input-wrapper input:focus {
-  border-color: #fff;
-}
-
-.input-wrapper input.has-error {
-  border-color: #e50914;
-}
-
-.error-text {
-  color: #e50914;
-  font-size: 13px;
-  margin-top: 6px;
-  font-weight: 500;
-}
-
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 56px;
-  padding: 0 24px;
-  background: #e50914;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 700;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.cta-button:hover {
-  background: #c11119;
-}
-
-.cta-button:active {
-  transform: scale(0.98);
-}
-
-.chevron-icon {
-  margin-left: 6px;
-}
-
-.hero-pricing {
-  margin-top: 20px;
-  font-size: 14px;
-  color: #aaa;
 }
 
 @media (max-width: 768px) {
   .hero-section {
     min-height: 70vh;
-    padding: 100px 16px 40px;
+    padding: 120px 20px 80px;
   }
-
   .hero-title {
-    font-size: 2.1rem;
+    font-size: 2.2rem;
   }
-
-  .hero-subtitle {
-    font-size: 1.05rem;
-  }
-
-  .hero-cta-form {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .input-wrapper {
-    width: 100%;
-  }
-
-  .cta-button {
-    width: 100%;
-    margin-top: 8px;
+  .hero-overview {
+    font-size: 0.95rem;
   }
 }
 </style>

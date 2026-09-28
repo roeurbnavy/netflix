@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useMovieStore } from '@/stores/movies'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const movieStore = useMovieStore()
 
 const isScrolled = ref(false)
+const isSearchOpen = ref(false)
+const searchInput = ref('')
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 function handleScroll() {
   isScrolled.value = window.scrollY > 40
@@ -20,7 +25,24 @@ function handleAuthClick() {
   }
 }
 
+function toggleSearch() {
+  isSearchOpen.value = !isSearchOpen.value
+  if (!isSearchOpen.value) {
+    searchInput.value = ''
+    movieStore.clearSearch()
+  }
+}
+
+watch(searchInput, (newQuery) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    movieStore.search(newQuery)
+  }, 350)
+})
+
 function goToHome() {
+  searchInput.value = ''
+  movieStore.clearSearch()
   router.push('/')
 }
 
@@ -30,6 +52,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  if (debounceTimer) clearTimeout(debounceTimer)
 })
 </script>
 
@@ -46,6 +69,26 @@ onUnmounted(() => {
       </div>
 
       <div class="nav-right">
+        <!-- Live Movie Search Bar -->
+        <div class="search-box" :class="{ active: isSearchOpen }">
+          <button class="search-toggle-btn" aria-label="Search" @click="toggleSearch">
+            <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20">
+              <path
+                fill="currentColor"
+                d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+              />
+            </svg>
+          </button>
+          <input
+            v-if="isSearchOpen"
+            v-model="searchInput"
+            type="text"
+            placeholder="Titles, people, genres..."
+            class="search-input"
+            autofocus
+          />
+        </div>
+
         <template v-if="authStore.isLoggedIn">
           <span class="user-greeting">{{ authStore.currentUser?.email }}</span>
           <button class="auth-btn logout-btn" @click="handleAuthClick">Sign Out</button>
@@ -80,7 +123,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 
@@ -124,6 +167,46 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+/* Search bar styling */
+.search-box {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border-radius: 4px;
+  padding: 2px 6px;
+  transition: background-color 0.3s, border 0.3s;
+}
+
+.search-box.active {
+  background-color: rgba(0, 0, 0, 0.85);
+  border: 1px solid #777;
+}
+
+.search-toggle-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  width: 220px;
+  padding: 6px 8px;
+}
+
+.search-input::placeholder {
+  color: #888;
 }
 
 .user-greeting {
@@ -186,6 +269,10 @@ onUnmounted(() => {
 
   .user-greeting {
     display: none;
+  }
+
+  .search-input {
+    width: 130px;
   }
 }
 </style>
